@@ -447,7 +447,20 @@ body {
 const GOAL_CAL = 2000;
 const WATER_GOAL = 2500;
 const WATER_CUPS = 10;
-const CIRCUM = 2 * Math.PI * 75; // 471
+const CIRCUM = 2 * Math.PI * 75;
+
+let API_KEY = localStorage.getItem('anthropic_api_key') || '';
+function getApiKey() {
+  if (API_KEY) return API_KEY;
+  const key = prompt('Anthropic API anahtarini gir (sk-ant- ile baslar):');
+  if (key && key.trim().startsWith('sk-')) {
+    API_KEY = key.trim();
+    localStorage.setItem('anthropic_api_key', API_KEY);
+    return API_KEY;
+  }
+  alert('Gecersiz anahtar!');
+  return '';
+}
 
 let currentDate = new Date();
 currentDate.setHours(0,0,0,0);
@@ -604,7 +617,7 @@ document.getElementById('photo-input').addEventListener('change', async (e) => {
     try {
       const resp = await fetch('https://api.anthropic.com/v1/messages', {
         method:'POST',
-        headers:{'Content-Type':'application/json','x-api-key':'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','anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+        headers:{'Content-Type':'application/json','x-api-key':getApiKey(),'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
         body: JSON.stringify({
           model:'claude-sonnet-4-20250514',
           max_tokens:1000,
@@ -668,7 +681,7 @@ async function addManual() {
   try {
     const resp = await fetch('https://api.anthropic.com/v1/messages', {
       method:'POST',
-      headers:{'Content-Type':'application/json','x-api-key':'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','anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+      headers:{'Content-Type':'application/json','x-api-key':getApiKey(),'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
       body: JSON.stringify({
         model:'claude-sonnet-4-20250514',
         max_tokens:400,
