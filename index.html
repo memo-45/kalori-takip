@@ -619,7 +619,7 @@ document.getElementById('photo-input').addEventListener('change', async (e) => {
         method:'POST',
         headers:{'Content-Type':'application/json','x-api-key':getApiKey(),'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
         body: JSON.stringify({
-          model:'claude-sonnet-4-20250514',
+          model:'claude-sonnet-4-5',
           max_tokens:1000,
           messages:[{role:'user',content:[
             {type:'image',source:{type:'base64',media_type:file.type||'image/jpeg',data:base64}},
@@ -683,7 +683,7 @@ async function addManual() {
       method:'POST',
       headers:{'Content-Type':'application/json','x-api-key':getApiKey(),'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
       body: JSON.stringify({
-        model:'claude-sonnet-4-20250514',
+        model:'claude-sonnet-4-5',
         max_tokens:400,
         messages:[{role:'user',content:`"${name}" yemeğinin ${gram?gram+' '+unit:'1 porsiyon'} için besin değerleri. SADECE JSON: {"name":"tam ad","emoji":"emoji","calories":sayı,"protein":sayı,"carbs":sayı,"fat":sayı}`}]
       })
