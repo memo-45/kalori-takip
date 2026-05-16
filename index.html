@@ -289,7 +289,14 @@ input:focus,select:focus { outline:none; border-color:#0f3460; }
           <button onclick="addFromDb()">Ekle</button>
         </div>
         <div class="or-divider"><span>veya manuel gir</span></div>
-        <div class="form-group"><label class="form-label">Yemek adı</label><input type="text" id="manualName" placeholder="örn. Mercimek çorbası"></div>
+        <div class="form-group">
+          <label class="form-label">Yemek adı <span id="aiAnalyzing" style="display:none;font-size:10px;color:#378add;">🤖 analiz ediyor...</span></label>
+          <input type="text" id="manualName" placeholder="örn. Mercimek çorbası" oninput="scheduleAiAutoFill(this.value)">
+          <div id="aiSuggestion" style="display:none;background:#f0f7ff;border:1px solid #b5d4f4;border-radius:8px;padding:10px 12px;margin-top:6px;font-size:12px;cursor:pointer;" onclick="applyAiSuggestion()">
+            <div style="font-size:10px;color:#185fa5;margin-bottom:4px;">🤖 AI önerisi — tıkla uygula</div>
+            <div id="aiSuggestionText" style="color:#1a1a2e;font-weight:500;"></div>
+          </div>
+        </div>
         <div class="form-group"><label class="form-label">Öğün</label>
           <select id="manualMealType"><option>Kahvaltı</option><option>Öğle</option><option>Akşam</option><option>Ara öğün</option></select>
         </div>
@@ -633,6 +640,52 @@ async function addCurrentFood() {
   await saveMealRow({...state.currentFood,time:nowTime()});
   state.currentFood=null;document.getElementById('aiResult').classList.remove('show');document.getElementById('transcript').textContent='Eklendi!';document.getElementById('transcript').classList.remove('active');
   btn.disabled=false;btn.innerHTML='+ Günlüğe Ekle';
+}
+
+let aiAutoFillTimer = null;
+let aiSuggestionData = null;
+
+function scheduleAiAutoFill(value) {
+  clearTimeout(aiAutoFillTimer);
+  document.getElementById('aiSuggestion').style.display = 'none';
+  aiSuggestionData = null;
+  if (value.length < 3) { document.getElementById('aiAnalyzing').style.display='none'; return; }
+  document.getElementById('aiAnalyzing').style.display = 'inline';
+  aiAutoFillTimer = setTimeout(() => aiAutoFill(value), 800);
+}
+
+async function aiAutoFill(text) {
+  try {
+    const resp = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+      method:'POST',
+      headers:{'Authorization':'Bearer '+OPENROUTER_KEY,'Content-Type':'application/json','HTTP-Referer':'https://memo-45.github.io','X-Title':'KaloriAI'},
+      body: JSON.stringify({model:'openai/gpt-4o-mini', messages:[
+        {role:'system', content:'Sen bir diyetisyen AI asistanısın. Türk mutfağını çok iyi biliyorsun. SADECE JSON döndür: {"calories":sayı,"protein":sayı,"carbs":sayı,"fat":sayı,"emoji":"tek emoji","meal_type":"Kahvaltı/Öğle/Akşam/Ara öğün"}'},
+        {role:'user', content:'"'+text+'" için besin değerlerini tahmin et (ortalama porsiyon için)'}
+      ]})
+    });
+    const data = await resp.json();
+    const raw = data.choices[0].message.content;
+    const parsed = JSON.parse(raw.replace(/```json|```/g,'').trim());
+    aiSuggestionData = {...parsed, food: text};
+    document.getElementById('aiAnalyzing').style.display = 'none';
+    document.getElementById('aiSuggestionText').textContent =
+      parsed.emoji + ' ' + parsed.calories + ' kcal · ' +
+      parsed.protein + 'g protein · ' + parsed.carbs + 'g karb · ' + parsed.fat + 'g yağ';
+    document.getElementById('aiSuggestion').style.display = 'block';
+  } catch(e) {
+    document.getElementById('aiAnalyzing').style.display = 'none';
+  }
+}
+
+function applyAiSuggestion() {
+  if (!aiSuggestionData) return;
+  document.getElementById('manualCal').value = aiSuggestionData.calories;
+  document.getElementById('manualProtein').value = aiSuggestionData.protein;
+  document.getElementById('manualCarb').value = aiSuggestionData.carbs;
+  document.getElementById('manualFat').value = aiSuggestionData.fat;
+  document.getElementById('aiSuggestion').style.display = 'none';
+  showToast('✅ Değerler dolduruldu!');
 }
 
 async function addManualFood() {
