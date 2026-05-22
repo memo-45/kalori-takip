@@ -139,6 +139,8 @@ input:focus,select:focus { outline:none; border-color:#0f3460; }
 .tip-icon { font-size:22px; flex-shrink:0; }
 .tip-title { font-size:13px; font-weight:600; color:#1a1a2e; }
 .tip-text { font-size:12px; color:#888; margin-top:3px; line-height:1.5; }
+.coach-goal-btn, .coach-muscle-btn, .coach-level-btn { background:#f7f8fa; border:1px solid #e8e8e8; border-radius:10px; padding:10px 8px; font-size:12px; cursor:pointer; font-family:'DM Sans',sans-serif; width:100%; transition:all 0.15s; }
+.coach-goal-btn.selected, .coach-muscle-btn.selected, .coach-level-btn.selected { background:#0f3460; color:white; border-color:#0f3460; }
 .qw-btn { background:#f7f8fa; border:1px solid #e8e8e8; border-radius:10px; padding:10px 8px; font-size:13px; cursor:pointer; font-family:'DM Sans',sans-serif; width:100%; transition:all 0.2s; }
 .qw-btn.selected { background:#0f3460; color:white; border-color:#0f3460; }
 .not-supported { background:#fff3cd; border:1px solid #fac775; border-radius:10px; padding:10px 14px; font-size:12px; color:#633806; margin-bottom:12px; display:none; }
@@ -273,6 +275,7 @@ input:focus,select:focus { outline:none; border-color:#0f3460; }
     <button class="tab" onclick="showTab('foods')"><i class="ti ti-database"></i>Besinler</button>
     <button class="tab" onclick="showTab('profile')"><i class="ti ti-calculator"></i>Hesapla</button>
     <button class="tab" onclick="showTab('tips')"><i class="ti ti-bulb"></i>İpuçları</button>
+    <button class="tab" onclick="showTab('coach')"><i class="ti ti-robot"></i>Koç</button>
   </div>
 
   <div class="content">
@@ -505,6 +508,90 @@ input:focus,select:focus { outline:none; border-color:#0f3460; }
           <div class="breakdown-item"><div class="breakdown-num" id="brkCarb">—</div><div class="breakdown-lbl">Karb (g)</div></div>
           <div class="breakdown-item"><div class="breakdown-num" id="brkFat">—</div><div class="breakdown-lbl">Yağ (g)</div></div>
         </div>
+      </div>
+    </div>
+
+    <!-- AI KOÇ -->
+    <div class="panel" id="panel-coach">
+      <div style="background:linear-gradient(135deg,#1a1a2e,#0f3460);border-radius:16px;padding:18px;margin-bottom:16px;text-align:center;">
+        <div style="font-size:28px;margin-bottom:6px;">🤖</div>
+        <div style="font-family:'Syne',sans-serif;font-size:16px;font-weight:700;color:white;">AI Antrenman Koçu</div>
+        <div style="font-size:11px;color:rgba(255,255,255,0.5);margin-top:4px;">Kişiselleştirilmiş program ve öneri</div>
+      </div>
+
+      <!-- Hedef -->
+      <div style="font-size:12px;font-weight:500;color:#888;margin-bottom:8px;">HEDEFIN NE?</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px;">
+        <button onclick="selectGoalCoach(this,'Kas kütlesi kazanmak (bulk)')" class="coach-goal-btn">💪 Kas Kazan</button>
+        <button onclick="selectGoalCoach(this,'Yağ yakmak ve form almak')" class="coach-goal-btn">🔥 Yağ Yak</button>
+        <button onclick="selectGoalCoach(this,'Hem güçlenmek hem yağ yakmak (recomp)')" class="coach-goal-btn">⚡ Recomp</button>
+        <button onclick="selectGoalCoach(this,'Genel fitness ve sağlık')" class="coach-goal-btn">🏃 Fitness</button>
+        <button onclick="selectGoalCoach(this,'Dayanıklılık ve kondisyon')" class="coach-goal-btn">🚴 Kondisyon</button>
+        <button onclick="selectGoalCoach(this,'Güç artırmak (powerlifting)')" class="coach-goal-btn">🏋️ Güç</button>
+      </div>
+
+      <!-- Bugün hangi kas grubu -->
+      <div style="font-size:12px;font-weight:500;color:#888;margin-bottom:8px;">BUGÜN HANGİ KAS GRUBU?</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:14px;">
+        <button onclick="selectMuscleCoach(this,'Göğüs')" class="coach-muscle-btn">🫁 Göğüs</button>
+        <button onclick="selectMuscleCoach(this,'Sırt')" class="coach-muscle-btn">🔙 Sırt</button>
+        <button onclick="selectMuscleCoach(this,'Bacak')" class="coach-muscle-btn">🦵 Bacak</button>
+        <button onclick="selectMuscleCoach(this,'Omuz')" class="coach-muscle-btn">🦾 Omuz</button>
+        <button onclick="selectMuscleCoach(this,'Kol')" class="coach-muscle-btn">💪 Kol</button>
+        <button onclick="selectMuscleCoach(this,'Karın')" class="coach-muscle-btn">🎯 Karın</button>
+        <button onclick="selectMuscleCoach(this,'Full Body')" class="coach-muscle-btn">🏋️ Full Body</button>
+        <button onclick="selectMuscleCoach(this,'Cardio')" class="coach-muscle-btn">🏃 Cardio</button>
+        <button onclick="selectMuscleCoach(this,'Push Pull Legs')" class="coach-muscle-btn">🔄 PPL</button>
+      </div>
+
+      <!-- Ekipman & Süre -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;">
+        <div>
+          <div style="font-size:12px;font-weight:500;color:#888;margin-bottom:6px;">EKİPMAN</div>
+          <select id="coachEquipment" style="width:100%;padding:10px 12px;border:1px solid #e8e8e8;border-radius:8px;font-size:13px;font-family:'DM Sans',sans-serif;">
+            <option value="tam donanımlı spor salonu">🏋️ Spor Salonu</option>
+            <option value="dambıl ve barbell">🏠 Ev + Ağırlık</option>
+            <option value="sadece vücut ağırlığı">💪 Vücut Ağırlığı</option>
+            <option value="minimal ekipman (bant, kettlebell)">🎽 Minimal</option>
+          </select>
+        </div>
+        <div>
+          <div style="font-size:12px;font-weight:500;color:#888;margin-bottom:6px;">SÜRE</div>
+          <select id="coachDuration" style="width:100%;padding:10px 12px;border:1px solid #e8e8e8;border-radius:8px;font-size:13px;font-family:'DM Sans',sans-serif;">
+            <option value="30">30 dakika</option>
+            <option value="45" selected>45 dakika</option>
+            <option value="60">60 dakika</option>
+            <option value="90">90 dakika</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Deneyim -->
+      <div style="font-size:12px;font-weight:500;color:#888;margin-bottom:8px;">DENEYİM SEVİYEN</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:16px;">
+        <button onclick="selectLevelCoach(this,'Başlangıç')" class="coach-level-btn">🌱 Başlangıç</button>
+        <button onclick="selectLevelCoach(this,'Orta')" class="coach-level-btn selected">⚡ Orta</button>
+        <button onclick="selectLevelCoach(this,'İleri')" class="coach-level-btn">🔥 İleri</button>
+      </div>
+
+      <!-- Ekstra not -->
+      <div style="font-size:12px;font-weight:500;color:#888;margin-bottom:6px;">EKSTRA NOT (opsiyonel)</div>
+      <input type="text" id="coachNote" placeholder="örn. Sol dizim ağrıyor, bench press odaklı olsun..." style="width:100%;padding:10px 12px;border:1px solid #e8e8e8;border-radius:8px;font-size:13px;font-family:'DM Sans',sans-serif;margin-bottom:14px;">
+
+      <button onclick="getCoachPlan()" id="coachBtn" style="width:100%;padding:13px;background:linear-gradient(135deg,#1a1a2e,#0f3460);color:white;border:none;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;">
+        🤖 Program Oluştur
+      </button>
+
+      <!-- AI Sonuç -->
+      <div id="coachResult" style="display:none;margin-top:16px;">
+        <div style="background:linear-gradient(135deg,#1a1a2e,#0f3460);border-radius:14px;padding:16px;margin-bottom:12px;">
+          <div style="font-family:'Syne',sans-serif;font-size:14px;font-weight:700;color:white;margin-bottom:4px;">📋 Antrenman Programın</div>
+          <div id="coachSummary" style="font-size:12px;color:rgba(255,255,255,0.6);"></div>
+        </div>
+        <div id="coachPlanContent" style="font-size:13px;color:#1a1a2e;line-height:1.7;white-space:pre-wrap;"></div>
+        <button onclick="addCoachWorkout()" id="coachAddBtn" style="width:100%;padding:12px;background:#0f3460;color:white;border:none;border-radius:10px;font-size:14px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif;margin-top:12px;">
+          ✅ Bu Antrenmanı Günlüğe Ekle
+        </button>
       </div>
     </div>
 
@@ -1039,7 +1126,7 @@ function showTab(name) {
   document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
   document.getElementById('panel-'+name).classList.add('active');
-  ['add','meals','foods','profile','tips'].forEach((n,i)=>{if(n===name)document.querySelectorAll('.tab')[i].classList.add('active');});
+  ['add','meals','foods','profile','tips','coach'].forEach((n,i)=>{if(n===name)document.querySelectorAll('.tab')[i].classList.add('active');});
   if(name==='meals'){state.viewDate=todayStr();document.getElementById('dayNavLabel').textContent='Bugün';document.getElementById('nextDayBtn').disabled=true;loadDay(state.viewDate);}
   if(name==='foods') loadFoods();
 }
@@ -1230,6 +1317,121 @@ async function calculateCalories() {
   document.getElementById('calcResult').style.display='block';
   state.goal=tdee;document.getElementById('goalDisplay').textContent=tdee;updateUI();
   await saveProfile({goal_calories:tdee,age,gender,height_cm:h,weight_kg:w,activity:act,goal_mult:gm});
+}
+
+// ── AI KOÇ ──
+let coachGoal = 'Kas kütlesi kazanmak (bulk)';
+let coachMuscle = '';
+let coachLevel = 'Orta';
+let coachPlanData = null;
+
+function selectGoalCoach(btn, goal) {
+  coachGoal = goal;
+  document.querySelectorAll('.coach-goal-btn').forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+}
+
+function selectMuscleCoach(btn, muscle) {
+  coachMuscle = muscle;
+  document.querySelectorAll('.coach-muscle-btn').forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+}
+
+function selectLevelCoach(btn, level) {
+  coachLevel = level;
+  document.querySelectorAll('.coach-level-btn').forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+}
+
+async function getCoachPlan() {
+  if (!coachMuscle) { showToast('⚠️ Kas grubu seçin!'); return; }
+  if (!coachGoal) { showToast('⚠️ Hedef seçin!'); return; }
+  
+  const btn = document.getElementById('coachBtn');
+  btn.disabled = true;
+  btn.textContent = '🤖 Program hazırlanıyor...';
+  document.getElementById('coachResult').style.display = 'none';
+
+  const equipment = document.getElementById('coachEquipment').value;
+  const duration = document.getElementById('coachDuration').value;
+  const note = document.getElementById('coachNote').value;
+  
+  // Get profile data
+  const weight = document.getElementById('weight').value || 75;
+  const age = document.getElementById('age').value || 30;
+  const gender = document.getElementById('gender').value === 'male' ? 'erkek' : 'kadın';
+
+  const prompt = `${age} yaşında ${gender}, ${weight}kg, deneyim: ${coachLevel}.
+Hedef: ${coachGoal}
+Bugünkü antrenman: ${coachMuscle}
+Ekipman: ${equipment}
+Süre: ${duration} dakika
+${note ? 'Not: ' + note : ''}
+
+Detaylı Türkçe antrenman programı hazırla. Şu formatı kullan:
+🎯 HEDEF & STRATEJİ (2-3 cümle)
+
+🔥 ISINMA (5 dk)
+- hareketler
+
+💪 ANA ANTRENMAN
+Her egzersiz için: egzersiz adı - set x tekrar - dinlenme - ipucu
+
+🧘 SOĞUMA (5 dk)
+- hareketler
+
+⚡ BUGÜNKÜ TAHMİNİ YAKILAN KALORİ: X kcal
+🍽️ ANTRENMan SONRASI BESLENME: öneri`;
+
+  try {
+    const resp = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+      method: 'POST',
+      headers: {'Authorization':'Bearer '+OPENROUTER_KEY,'Content-Type':'application/json','HTTP-Referer':'https://memo-45.github.io','X-Title':'KaloriAI'},
+      body: JSON.stringify({
+        model: 'openai/gpt-4o-mini',
+        max_tokens: 1200,
+        messages: [
+          {role:'system', content:'Sen deneyimli bir kişisel antrenör ve spor bilimcisin. Türkçe, detaylı ve kişiselleştirilmiş antrenman programları hazırlarsın.'},
+          {role:'user', content: prompt}
+        ]
+      })
+    });
+    
+    const data = await resp.json();
+    const plan = data.choices[0].message.content;
+    
+    // Extract estimated calories from plan
+    const calMatch = plan.match(/TAHMİNİ YAKILAN KALORİ[:\s]+(\d+)/i);
+    const estimatedCal = calMatch ? parseInt(calMatch[1]) : Math.round(duration * 7);
+    
+    coachPlanData = {
+      name: coachMuscle + ' Antrenmanı',
+      calories: estimatedCal,
+      duration: parseInt(duration),
+      emoji: '🏋️'
+    };
+
+    document.getElementById('coachSummary').textContent = coachMuscle + ' · ' + duration + ' dk · ' + coachLevel + ' · ' + estimatedCal + ' kcal tahmini';
+    document.getElementById('coachPlanContent').textContent = plan;
+    document.getElementById('coachResult').style.display = 'block';
+    document.getElementById('coachResult').scrollIntoView({behavior:'smooth'});
+    
+  } catch(e) {
+    showToast('❌ Program oluşturulamadı, tekrar dene!');
+  }
+  
+  btn.disabled = false;
+  btn.textContent = '🤖 Program Oluştur';
+}
+
+async function addCoachWorkout() {
+  if (!coachPlanData) return;
+  const btn = document.getElementById('coachAddBtn');
+  btn.disabled = true; btn.textContent = 'Kaydediliyor...';
+  await saveWorkoutRow(coachPlanData);
+  await loadDay(todayStr());
+  showToast('✅ Antrenman günlüğe eklendi!');
+  btn.disabled = false; btn.textContent = '✅ Bu Antrenmanı Günlüğe Ekle';
 }
 
 // ── HIZLI ANTRENMAN ──
