@@ -256,6 +256,7 @@ input:focus,select:focus { outline:none; border-color:#0f3460; }
       <div class="sync-bar"><div class="sync-dot" id="syncDot"></div><span id="syncText">Bağlı</span></div>
       <div class="sub-tabs">
         <button class="sub-tab active" onclick="showSubTab('voice')"><i class="ti ti-microphone" style="font-size:14px;"></i> Sesli</button>
+        <button class="sub-tab" onclick="showSubTab('camera')"><i class="ti ti-camera" style="font-size:14px;"></i> Kamera</button>
         <button class="sub-tab" onclick="showSubTab('manual')"><i class="ti ti-pencil" style="font-size:14px;"></i> Manuel</button>
         <button class="sub-tab" onclick="showSubTab('workout')"><i class="ti ti-barbell" style="font-size:14px;"></i> Antrenman</button>
       </div>
@@ -274,6 +275,66 @@ input:focus,select:focus { outline:none; border-color:#0f3460; }
           <div class="ai-result-cal" id="aiCal"></div>
           <div class="ai-result-macros" id="aiMacros"></div>
           <button class="btn-primary" id="addBtn" onclick="addCurrentFood()" style="margin-top:10px;">+ Günlüğe Ekle</button>
+        </div>
+      </div>
+
+      <div id="sub-camera" style="display:none;">
+        <div style="text-align:center;padding:8px 0 16px;">
+          <div id="cameraPreview" style="width:100%;max-width:320px;margin:0 auto 12px;border-radius:14px;overflow:hidden;background:#f7f8fa;min-height:180px;display:flex;align-items:center;justify-content:center;border:2px dashed #e8e8e8;">
+            <div id="cameraPlaceholder" style="text-align:center;padding:30px;color:#aaa;">
+              <i class="ti ti-camera" style="font-size:48px;display:block;margin-bottom:8px;opacity:0.4;"></i>
+              <div style="font-size:13px;">Fotoğraf çek veya seç</div>
+            </div>
+            <img id="cameraImg" style="display:none;width:100%;height:auto;border-radius:14px;" alt="Yemek fotoğrafı">
+          </div>
+          <div style="display:flex;gap:10px;justify-content:center;margin-bottom:12px;">
+            <label style="background:#0f3460;color:white;padding:10px 18px;border-radius:10px;cursor:pointer;font-size:13px;font-family:DM Sans,sans-serif;">
+              <i class="ti ti-camera" style="font-size:14px;vertical-align:-2px;"></i> Kamera
+              <input type="file" accept="image/*" capture="environment" style="display:none;" onchange="handleCameraPhoto(this)">
+            </label>
+            <label style="background:#f7f8fa;color:#1a1a2e;padding:10px 18px;border-radius:10px;cursor:pointer;font-size:13px;border:1px solid #e8e8e8;font-family:DM Sans,sans-serif;">
+              <i class="ti ti-photo" style="font-size:14px;vertical-align:-2px;"></i> Galeri
+              <input type="file" accept="image/*" style="display:none;" onchange="handleCameraPhoto(this)">
+            </label>
+          </div>
+          <div id="cameraAnalyzing" style="display:none;font-size:13px;color:#378add;margin-bottom:10px;">🤖 AI yemeği analiz ediyor...</div>
+        </div>
+        <div class="ai-result" id="cameraResult">
+          <div class="ai-result-title">📸 Görsel AI Analizi</div>
+          <div class="ai-result-food" id="cameraFood"></div>
+          <div class="ai-result-cal" id="cameraCal"></div>
+          <div class="ai-result-macros" id="cameraMacros"></div>
+          <button class="btn-primary" id="cameraAddBtn" onclick="addCameraFood()" style="margin-top:10px;">+ Günlüğe Ekle</button>
+        </div>
+      </div>
+
+      <div id="sub-camera" style="display:none;">
+        <div style="text-align:center;padding:8px 0 16px;">
+          <div id="cameraPreview" style="width:100%;max-width:320px;margin:0 auto 12px;border-radius:14px;overflow:hidden;background:#f7f8fa;min-height:180px;display:flex;align-items:center;justify-content:center;border:2px dashed #e8e8e8;">
+            <div id="cameraPlaceholder" style="text-align:center;padding:30px;color:#aaa;">
+              <i class="ti ti-camera" style="font-size:48px;display:block;margin-bottom:8px;opacity:0.4;"></i>
+              <div style="font-size:13px;">Fotoğraf çek veya seç</div>
+            </div>
+            <img id="cameraImg" style="display:none;width:100%;height:auto;border-radius:14px;" alt="Yemek">
+          </div>
+          <div style="display:flex;gap:10px;justify-content:center;margin-bottom:12px;">
+            <label style="background:#0f3460;color:white;padding:10px 18px;border-radius:10px;cursor:pointer;font-size:13px;font-family:'DM Sans',sans-serif;">
+              <i class="ti ti-camera" style="font-size:14px;vertical-align:-2px;"></i> Kamera
+              <input type="file" accept="image/*" capture="environment" style="display:none;" onchange="handleCameraPhoto(this)">
+            </label>
+            <label style="background:#f7f8fa;color:#1a1a2e;padding:10px 18px;border-radius:10px;cursor:pointer;font-size:13px;border:1px solid #e8e8e8;font-family:'DM Sans',sans-serif;">
+              <i class="ti ti-photo" style="font-size:14px;vertical-align:-2px;"></i> Galeri
+              <input type="file" accept="image/*" style="display:none;" onchange="handleCameraPhoto(this)">
+            </label>
+          </div>
+          <div id="cameraAnalyzing" style="display:none;font-size:13px;color:#378add;margin-bottom:10px;">🤖 AI yemeği analiz ediyor...</div>
+        </div>
+        <div class="ai-result" id="cameraResult">
+          <div class="ai-result-title">📸 Görsel AI Analizi</div>
+          <div class="ai-result-food" id="cameraFood"></div>
+          <div class="ai-result-cal" id="cameraCal"></div>
+          <div class="ai-result-macros" id="cameraMacros"></div>
+          <button class="btn-primary" id="cameraAddBtn" onclick="addCameraFood()" style="margin-top:10px;">+ Günlüğe Ekle</button>
         </div>
       </div>
 
@@ -853,9 +914,98 @@ function showTab(name) {
   if(name==='foods') loadFoods();
 }
 
+let cameraFoodData = null;
+
+function handleCameraPhoto(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    const img = document.getElementById('cameraImg');
+    img.src = e.target.result;
+    img.style.display = 'block';
+    document.getElementById('cameraPlaceholder').style.display = 'none';
+    document.getElementById('cameraResult').classList.remove('show');
+    cameraFoodData = null;
+    analyzePhoto(e.target.result);
+  };
+  reader.readAsDataURL(file);
+}
+
+async function analyzePhoto(dataUrl) {
+  document.getElementById('cameraAnalyzing').style.display = 'block';
+  document.getElementById('cameraResult').classList.remove('show');
+  
+  // Extract base64 data
+  const base64 = dataUrl.split(',')[1];
+  const mimeType = dataUrl.split(';')[0].split(':')[1];
+  
+  try {
+    const resp = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': 'Bearer ' + OPENROUTER_KEY,
+        'Content-Type': 'application/json',
+        'HTTP-Referer': 'https://memo-45.github.io',
+        'X-Title': 'KaloriAI'
+      },
+      body: JSON.stringify({
+        model: 'openai/gpt-4o-mini',
+        messages: [{
+          role: 'user',
+          content: [
+            {
+              type: 'image_url',
+              image_url: { url: dataUrl }
+            },
+            {
+              type: 'text',
+              text: 'Bu yemek fotoğrafını analiz et. SADECE JSON döndür, başka hiçbir şey yazma: {"food":"yemeğin Türkçe adı","calories":sayı,"protein":sayı,"carbs":sayı,"fat":sayı,"emoji":"emoji","meal_type":"Kahvaltı/Öğle/Akşam/Ara öğün","note":"kısa açıklama"}'
+            }
+          ]
+        }]
+      })
+    });
+    
+    const data = await resp.json();
+    const raw = data.choices[0].message.content;
+    const parsed = JSON.parse(raw.replace(/```json|```/g,'').trim());
+    
+    cameraFoodData = {...parsed, time: nowTime()};
+    document.getElementById('cameraAnalyzing').style.display = 'none';
+    document.getElementById('cameraFood').textContent = parsed.emoji + ' ' + parsed.food;
+    document.getElementById('cameraCal').textContent = parsed.calories + ' kcal';
+    document.getElementById('cameraMacros').innerHTML = 
+      '<span>🥩 ' + parsed.protein + 'g protein</span>' +
+      '<span>🌾 ' + parsed.carbs + 'g karb</span>' +
+      '<span>🫒 ' + parsed.fat + 'g yağ</span>' +
+      (parsed.note ? '<div style="margin-top:6px;font-size:11px;color:#555;">💡 ' + parsed.note + '</div>' : '');
+    document.getElementById('cameraResult').classList.add('show');
+  } catch(e) {
+    document.getElementById('cameraAnalyzing').style.display = 'none';
+    document.getElementById('cameraFood').textContent = '⚠️ Analiz başarısız';
+    document.getElementById('cameraCal').textContent = '—';
+    document.getElementById('cameraMacros').innerHTML = 'Lütfen tekrar deneyin.';
+    document.getElementById('cameraResult').classList.add('show');
+  }
+}
+
+async function addCameraFood() {
+  if (!cameraFoodData) return;
+  const btn = document.getElementById('cameraAddBtn');
+  btn.disabled = true; btn.textContent = 'Kaydediliyor...';
+  await saveMealRow(cameraFoodData);
+  cameraFoodData = null;
+  document.getElementById('cameraResult').classList.remove('show');
+  document.getElementById('cameraImg').style.display = 'none';
+  document.getElementById('cameraPlaceholder').style.display = 'block';
+  btn.disabled = false; btn.innerHTML = '+ Günlüğe Ekle';
+  showToast('✅ Yemek eklendi!');
+}
+
 function showSubTab(name) {
-  ['voice','manual','workout'].forEach(n=>document.getElementById('sub-'+n).style.display=n===name?'block':'none');
-  document.querySelectorAll('.sub-tab').forEach((t,i)=>t.classList.toggle('active',['voice','manual','workout'][i]===name));
+  ['voice','camera','manual','workout'].forEach(n=>document.getElementById('sub-'+n).style.display=n===name?'block':'none');
+  document.querySelectorAll('.sub-tab').forEach((t,i)=>t.classList.toggle('active',['voice','camera','manual','workout'][i]===name));
 }
 
 function changeDay(delta) {
