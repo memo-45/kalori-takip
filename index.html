@@ -419,6 +419,22 @@ input:focus,select:focus { outline:none; border-color:#0f3460; }
     <div class="panel" id="panel-foods">
       <div class="section-title">Besin Veritabanı</div>
       <p style="font-size:12px;color:#888;margin-bottom:12px;">Sık yediğin besinleri kaydet. Gram bazlı kalori hesaplar.</p>
+      <!-- BESIN ETİKETİ KAMERA -->
+      <div style="background:linear-gradient(135deg,#1a1a2e,#0f3460);border-radius:14px;padding:16px;margin-bottom:16px;text-align:center;">
+        <div style="font-family:'Syne',sans-serif;font-size:14px;font-weight:700;color:white;margin-bottom:4px;">📷 Etiket Tara</div>
+        <div style="font-size:11px;color:rgba(255,255,255,0.6);margin-bottom:12px;">Ürünün besin değerleri tablosunu çek, AI otomatik doldursun</div>
+        <label style="background:rgba(255,255,255,0.15);color:white;padding:10px 20px;border-radius:10px;cursor:pointer;font-size:13px;font-family:'DM Sans',sans-serif;display:inline-block;">
+          <i class="ti ti-scan" style="font-size:14px;vertical-align:-2px;"></i> Etiketi Tara
+          <input type="file" accept="image/*" capture="environment" style="display:none;" onchange="scanNutritionLabel(this)">
+        </label>
+        <label style="background:rgba(255,255,255,0.1);color:rgba(255,255,255,0.8);padding:10px 20px;border-radius:10px;cursor:pointer;font-size:13px;font-family:'DM Sans',sans-serif;display:inline-block;margin-left:8px;border:1px solid rgba(255,255,255,0.2);">
+          <i class="ti ti-photo" style="font-size:14px;vertical-align:-2px;"></i> Galeri
+          <input type="file" accept="image/*" style="display:none;" onchange="scanNutritionLabel(this)">
+        </label>
+        <div id="labelScanning" style="display:none;color:rgba(255,255,255,0.8);font-size:12px;margin-top:10px;">🤖 Etiket okunuyor...</div>
+        <div id="labelScanResult" style="display:none;background:rgba(255,255,255,0.1);border-radius:8px;padding:10px;margin-top:10px;font-size:12px;color:rgba(255,255,255,0.9);text-align:left;"></div>
+      </div>
+
       <div class="form-group"><label class="form-label">Besin adı</label><input type="text" id="dbFoodName" placeholder="örn. Tavuk göğsü"></div>
       <div class="form-row">
         <div class="form-group"><label class="form-label">Kalori/100g</label><input type="number" id="dbCalPer100" placeholder="165"></div>
@@ -427,6 +443,11 @@ input:focus,select:focus { outline:none; border-color:#0f3460; }
       <div class="form-row">
         <div class="form-group"><label class="form-label">Karb/100g</label><input type="number" id="dbCarbPer100" placeholder="0"></div>
         <div class="form-group"><label class="form-label">Yağ/100g</label><input type="number" id="dbFatPer100" placeholder="3.6"></div>
+      </div>
+      <div class="form-row-3">
+        <div class="form-group"><label class="form-label">Şeker/100g</label><input type="number" id="dbSugarPer100" placeholder="0g"></div>
+        <div class="form-group"><label class="form-label">Lif/100g</label><input type="number" id="dbFiberPer100" placeholder="0g"></div>
+        <div class="form-group"><label class="form-label">Sodyum/100g</label><input type="number" id="dbSodiumPer100" placeholder="mg"></div>
       </div>
       <button class="btn-primary" onclick="saveFoodToDB()">💾 Kaydet</button>
       <div style="margin-top:20px;"><div class="section-title">Kayıtlı Besinler</div><div id="foodDbList"><div class="empty-state"><i class="ti ti-salad"></i>Henüz besin eklemediniz.</div></div></div>
@@ -639,9 +660,9 @@ async function saveFoodToDB() {
   const cal=+document.getElementById('dbCalPer100').value;
   if(!name||!cal){showToast('⚠️ Besin adı ve kalori zorunlu!');return;}
   try {
-    const row=await sb('/rest/v1/foods','POST',{user_id:currentUser.user.id,name,calories_per_100g:cal,protein_per_100g:+document.getElementById('dbProteinPer100').value||0,carbs_per_100g:+document.getElementById('dbCarbPer100').value||0,fat_per_100g:+document.getElementById('dbFatPer100').value||0});
+    const row=await sb('/rest/v1/foods','POST',{user_id:currentUser.user.id,name,calories_per_100g:cal,protein_per_100g:+document.getElementById('dbProteinPer100').value||0,carbs_per_100g:+document.getElementById('dbCarbPer100').value||0,fat_per_100g:+document.getElementById('dbFatPer100').value||0,sugar_g:+document.getElementById('dbSugarPer100').value||0,fiber_g:+document.getElementById('dbFiberPer100').value||0,sodium_mg:+document.getElementById('dbSodiumPer100').value||0});
     state.foods.push(row[0]); showToast('✅ '+name+' kaydedildi!');
-    ['dbFoodName','dbCalPer100','dbProteinPer100','dbCarbPer100','dbFatPer100'].forEach(id=>document.getElementById(id).value='');
+    ['dbFoodName','dbCalPer100','dbProteinPer100','dbCarbPer100','dbFatPer100','dbSugarPer100','dbFiberPer100','dbSodiumPer100'].forEach(id=>document.getElementById(id).value='');
     renderFoodDb();
   } catch(e){ showToast('❌ Kayıt hatası'); }
 }
@@ -866,7 +887,7 @@ async function addFromDb() {
 function renderFoodDb() {
   const list=document.getElementById('foodDbList');
   if(!state.foods.length){list.innerHTML='<div class="empty-state"><i class="ti ti-salad"></i>Henüz besin eklemediniz.</div>';return;}
-  list.innerHTML=state.foods.map(f=>`<div class="food-db-item"><div><div class="food-db-name">${f.name}</div><div class="food-db-info">${f.calories_per_100g} kal · ${f.protein_per_100g}g P · ${f.carbs_per_100g}g K · ${f.fat_per_100g}g Y <small>(100g)</small></div></div><button class="meal-del" onclick="deleteFoodFromDb(${f.id})"><i class="ti ti-trash"></i></button></div>`).join('');
+  list.innerHTML=state.foods.map(f=>`<div class="food-db-item"><div><div class="food-db-name">${f.name}</div><div class="food-db-info">${f.calories_per_100g} kal · ${f.protein_per_100g}g P · ${f.carbs_per_100g}g K · ${f.fat_per_100g}g Y${f.sugar_g?` · ${f.sugar_g}g Şeker`:''}${f.fiber_g?` · ${f.fiber_g}g Lif`:''}${f.sodium_mg?` · ${f.sodium_mg}mg Sod`:''}  <small>(100g)</small></div></div><button class="meal-del" onclick="deleteFoodFromDb(${f.id})"><i class="ti ti-trash"></i></button></div>`).join('');
 }
 
 function updateUI() {
@@ -915,6 +936,75 @@ function showTab(name) {
 }
 
 let cameraFoodData = null;
+
+async function scanNutritionLabel(input) {
+  const file = input.files[0];
+  if (!file) return;
+  
+  document.getElementById('labelScanning').style.display = 'block';
+  document.getElementById('labelScanResult').style.display = 'none';
+
+  const reader = new FileReader();
+  reader.onload = async (e) => {
+    const dataUrl = e.target.result;
+    try {
+      const resp = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': 'Bearer ' + OPENROUTER_KEY,
+          'Content-Type': 'application/json',
+          'HTTP-Referer': 'https://memo-45.github.io',
+          'X-Title': 'KaloriAI'
+        },
+        body: JSON.stringify({
+          model: 'openai/gpt-4o-mini',
+          messages: [{
+            role: 'user',
+            content: [
+              { type: 'image_url', image_url: { url: dataUrl } },
+              { type: 'text', text: 'Bu ürünün besin değerleri etiketini oku. 100g veya 100ml başına değerleri bul. SADECE JSON döndür: {"name":"ürün adı (varsa)","calories":sayı,"protein":sayı,"carbs":sayı,"fat":sayı,"sugar":sayı,"fiber":sayı,"sodium":sayı_mg}. Değer yoksa 0 yaz.' }
+            ]
+          }]
+        })
+      });
+
+      const data = await resp.json();
+      const raw = data.choices[0].message.content;
+      const parsed = JSON.parse(raw.replace(/```json|```/g,'').trim());
+
+      // Fill form
+      if (parsed.name) document.getElementById('dbFoodName').value = parsed.name;
+      if (parsed.calories) document.getElementById('dbCalPer100').value = parsed.calories;
+      if (parsed.protein) document.getElementById('dbProteinPer100').value = parsed.protein;
+      if (parsed.carbs) document.getElementById('dbCarbPer100').value = parsed.carbs;
+      if (parsed.fat) document.getElementById('dbFatPer100').value = parsed.fat;
+      if (parsed.sugar) document.getElementById('dbSugarPer100').value = parsed.sugar;
+      if (parsed.fiber) document.getElementById('dbFiberPer100').value = parsed.fiber;
+      if (parsed.sodium) document.getElementById('dbSodiumPer100').value = parsed.sodium;
+
+      document.getElementById('labelScanning').style.display = 'none';
+      document.getElementById('labelScanResult').style.display = 'block';
+      document.getElementById('labelScanResult').innerHTML = 
+        '✅ Etiket okundu! Form dolduruldu.<br>' +
+        '🔥 ' + parsed.calories + ' kal · ' +
+        '🥩 ' + parsed.protein + 'g P · ' +
+        '🌾 ' + parsed.carbs + 'g K · ' +
+        '🫒 ' + parsed.fat + 'g Y' +
+        (parsed.sugar ? ' · 🍬 ' + parsed.sugar + 'g Şeker' : '') +
+        (parsed.sodium ? ' · 🧂 ' + parsed.sodium + 'mg Sod' : '');
+      
+      showToast('✅ Etiket okundu, form dolduruldu!');
+      // Scroll to form
+      document.getElementById('dbFoodName').scrollIntoView({behavior:'smooth'});
+
+    } catch(e) {
+      document.getElementById('labelScanning').style.display = 'none';
+      document.getElementById('labelScanResult').style.display = 'block';
+      document.getElementById('labelScanResult').innerHTML = '❌ Etiket okunamadı. Daha net bir fotoğraf deneyin.';
+    }
+  };
+  reader.readAsDataURL(file);
+}
 
 function handleCameraPhoto(input) {
   const file = input.files[0];
