@@ -139,6 +139,8 @@ input:focus,select:focus { outline:none; border-color:#0f3460; }
 .tip-icon { font-size:22px; flex-shrink:0; }
 .tip-title { font-size:13px; font-weight:600; color:#1a1a2e; }
 .tip-text { font-size:12px; color:#888; margin-top:3px; line-height:1.5; }
+.qw-btn { background:#f7f8fa; border:1px solid #e8e8e8; border-radius:10px; padding:10px 8px; font-size:13px; cursor:pointer; font-family:'DM Sans',sans-serif; width:100%; transition:all 0.2s; }
+.qw-btn.selected { background:#0f3460; color:white; border-color:#0f3460; }
 .not-supported { background:#fff3cd; border:1px solid #fac775; border-radius:10px; padding:10px 14px; font-size:12px; color:#633806; margin-bottom:12px; display:none; }
 .toast { position:fixed; bottom:24px; left:50%; transform:translateX(-50%); background:#1a1a2e; color:white; padding:10px 20px; border-radius:20px; font-size:13px; opacity:0; transition:opacity 0.3s; pointer-events:none; z-index:999; white-space:nowrap; }
 .toast.show { opacity:1; }
@@ -238,6 +240,12 @@ input:focus,select:focus { outline:none; border-color:#0f3460; }
           <div class="net-cal-item"><div class="net-cal-label">Yakılan</div><div class="net-cal-value burned" id="burnedTotal">0</div></div>
           <div class="net-cal-item"><div class="net-cal-label">Net</div><div class="net-cal-value net" id="netTotal">0</div></div>
         </div>
+        <!-- HIZLI ANTRENMAN BUTONU -->
+        <button onclick="openWorkoutModal()" style="width:100%;margin-top:10px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);border-radius:10px;padding:10px 14px;color:white;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:12px;display:flex;align-items:center;justify-content:space-between;">
+          <span>🏋️ Antrenman ekle</span>
+          <span style="font-size:10px;color:rgba(255,255,255,0.5);">Net kaloriden düşer →</span>
+        </button>
+
         <!-- SU TAKİBİ -->
         <div id="waterBar" style="margin-top:10px;background:rgba(255,255,255,0.06);border-radius:10px;padding:10px 12px;">
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
@@ -508,6 +516,63 @@ input:focus,select:focus { outline:none; border-color:#0f3460; }
       <div class="tip-card"><div class="tip-icon">⏰</div><div><div class="tip-title">Yavaş Ye</div><div class="tip-text">Tokluk sinyali 20 dakikada ulaşır.</div></div></div>
       <div class="tip-card"><div class="tip-icon">🌙</div><div><div class="tip-title">Gece Geç Yeme</div><div class="tip-text">Yatmadan 2-3 saat önce büyük öğünlerden kaçın.</div></div></div>
       <div class="tip-card"><div class="tip-icon">🔥</div><div><div class="tip-title">Net Kalori</div><div class="tip-text">Net kalori = yenen - yakılan. Antrenmanını takip et!</div></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- QUICK WORKOUT MODAL -->
+<div id="quickWorkoutModal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.6);z-index:1000;overflow-y:auto;">
+  <div style="background:white;margin:30px auto;max-width:420px;border-radius:20px;overflow:hidden;">
+    <div style="background:linear-gradient(135deg,#1a1a2e,#0f3460);padding:20px 24px;display:flex;justify-content:space-between;align-items:center;">
+      <div style="font-family:'Syne',sans-serif;font-size:16px;font-weight:700;color:white;">🏋️ Antrenman Ekle</div>
+      <button onclick="closeWorkoutModal()" style="background:rgba(255,255,255,0.1);border:none;color:white;width:28px;height:28px;border-radius:50%;cursor:pointer;font-size:16px;">✕</button>
+    </div>
+    <div style="padding:20px;">
+      
+      <!-- Hızlı seçim -->
+      <div style="font-size:12px;font-weight:500;color:#888;margin-bottom:8px;">HIZLI SEÇİM</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px;">
+        <button onclick="quickWorkoutSelect('🏋️ Ağırlık')" class="qw-btn" id="qw-0">🏋️ Ağırlık</button>
+        <button onclick="quickWorkoutSelect('🏃 Koşu')" class="qw-btn" id="qw-1">🏃 Koşu</button>
+        <button onclick="quickWorkoutSelect('🚴 Bisiklet')" class="qw-btn" id="qw-2">🚴 Bisiklet</button>
+        <button onclick="quickWorkoutSelect('🧘 Yoga')" class="qw-btn" id="qw-3">🧘 Yoga</button>
+        <button onclick="quickWorkoutSelect('🏊 Yüzme')" class="qw-btn" id="qw-4">🏊 Yüzme</button>
+        <button onclick="quickWorkoutSelect('🚶 Yürüyüş')" class="qw-btn" id="qw-5">🚶 Yürüyüş</button>
+        <button onclick="quickWorkoutSelect('🥊 Boks')" class="qw-btn" id="qw-6">🥊 Boks</button>
+        <button onclick="quickWorkoutSelect('⚽ Futbol')" class="qw-btn" id="qw-7">⚽ Futbol</button>
+      </div>
+
+      <div style="font-size:12px;font-weight:500;color:#888;margin-bottom:8px;">DETAY</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;">
+        <div>
+          <label style="font-size:12px;color:#888;display:block;margin-bottom:4px;">Süre (dakika)</label>
+          <input type="number" id="qwDuration" placeholder="45" oninput="qwScheduleAi()" style="width:100%;padding:10px 12px;border:1px solid #e8e8e8;border-radius:8px;font-size:14px;font-family:'DM Sans',sans-serif;">
+        </div>
+        <div>
+          <label style="font-size:12px;color:#888;display:block;margin-bottom:4px;">Kilo (kg)</label>
+          <input type="number" id="qwWeight" placeholder="75" oninput="qwScheduleAi()" style="width:100%;padding:10px 12px;border:1px solid #e8e8e8;border-radius:8px;font-size:14px;font-family:'DM Sans',sans-serif;">
+        </div>
+      </div>
+
+      <div style="font-size:12px;color:#888;margin-bottom:4px;">Özel not (opsiyonel)</div>
+      <input type="text" id="qwNote" placeholder="örn. Bacak günü, 5 set squat..." style="width:100%;padding:10px 12px;border:1px solid #e8e8e8;border-radius:8px;font-size:14px;font-family:'DM Sans',sans-serif;margin-bottom:12px;">
+
+      <!-- AI Sonuç -->
+      <div id="qwAiBox" style="display:none;background:#eaf3de;border:1px solid #9fe1cb;border-radius:10px;padding:12px;margin-bottom:12px;">
+        <div style="font-size:10px;color:#3b6d11;margin-bottom:4px;">🤖 AI Tahmini</div>
+        <div id="qwAiResult" style="font-size:14px;font-weight:600;color:#1a1a2e;"></div>
+        <div id="qwAiNote" style="font-size:11px;color:#555;margin-top:3px;"></div>
+      </div>
+      <div id="qwAnalyzing" style="display:none;font-size:12px;color:#378add;margin-bottom:12px;">🤖 AI kalori hesaplıyor...</div>
+
+      <div style="margin-bottom:12px;">
+        <label style="font-size:12px;color:#888;display:block;margin-bottom:4px;">Yakılan kalori <span style="font-size:10px;">(AI doldurur veya kendin gir)</span></label>
+        <input type="number" id="qwCalories" placeholder="300" style="width:100%;padding:10px 12px;border:1px solid #e8e8e8;border-radius:8px;font-size:14px;font-family:'DM Sans',sans-serif;">
+      </div>
+
+      <button onclick="saveQuickWorkout()" style="width:100%;padding:13px;background:linear-gradient(135deg,#1a1a2e,#0f3460);color:white;border:none;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;">
+        🔥 Antrenmanı Kaydet
+      </button>
     </div>
   </div>
 </div>
@@ -1165,6 +1230,91 @@ async function calculateCalories() {
   document.getElementById('calcResult').style.display='block';
   state.goal=tdee;document.getElementById('goalDisplay').textContent=tdee;updateUI();
   await saveProfile({goal_calories:tdee,age,gender,height_cm:h,weight_kg:w,activity:act,goal_mult:gm});
+}
+
+// ── HIZLI ANTRENMAN ──
+let qwSelectedType = '🏋️ Ağırlık';
+let qwAiTimer = null;
+
+function openWorkoutModal() {
+  document.getElementById('quickWorkoutModal').style.display = 'block';
+  // Pre-fill weight from profile
+  const w = document.getElementById('weight').value;
+  if (w) document.getElementById('qwWeight').value = w;
+  // Auto-select ağırlık
+  quickWorkoutSelect('🏋️ Ağırlık');
+}
+
+function closeWorkoutModal() {
+  document.getElementById('quickWorkoutModal').style.display = 'none';
+  document.getElementById('qwAiBox').style.display = 'none';
+  document.getElementById('qwDuration').value = '';
+  document.getElementById('qwCalories').value = '';
+  document.getElementById('qwNote').value = '';
+}
+
+function quickWorkoutSelect(type) {
+  qwSelectedType = type;
+  document.querySelectorAll('.qw-btn').forEach(b => b.classList.remove('selected'));
+  const btns = document.querySelectorAll('.qw-btn');
+  const types = ['🏋️ Ağırlık','🏃 Koşu','🚴 Bisiklet','🧘 Yoga','🏊 Yüzme','🚶 Yürüyüş','🥊 Boks','⚽ Futbol'];
+  const idx = types.indexOf(type);
+  if (idx >= 0 && btns[idx]) btns[idx].classList.add('selected');
+  qwScheduleAi();
+}
+
+function qwScheduleAi() {
+  clearTimeout(qwAiTimer);
+  const dur = document.getElementById('qwDuration').value;
+  if (!dur || dur < 5) return;
+  document.getElementById('qwAnalyzing').style.display = 'block';
+  document.getElementById('qwAiBox').style.display = 'none';
+  qwAiTimer = setTimeout(qwEstimateCalories, 800);
+}
+
+async function qwEstimateCalories() {
+  const dur = +document.getElementById('qwDuration').value;
+  const weight = +document.getElementById('qwWeight').value || 75;
+  const note = document.getElementById('qwNote').value;
+  const workoutDesc = qwSelectedType + (note ? ', ' + note : '') + ', ' + dur + ' dakika, ' + weight + 'kg kişi';
+  
+  try {
+    const resp = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+      method: 'POST',
+      headers: {'Authorization':'Bearer '+OPENROUTER_KEY,'Content-Type':'application/json','HTTP-Referer':'https://memo-45.github.io','X-Title':'KaloriAI'},
+      body: JSON.stringify({
+        model: 'openai/gpt-4o-mini',
+        messages: [
+          {role:'system', content:'Sen bir fitness uzmanısın. Antrenman detaylarına göre yakılan kaloriyi hesapla. SADECE JSON: {"calories_burned":sayı,"intensity":"Düşük/Orta/Yüksek/Çok Yüksek","met":sayı,"note":"kısa Türkçe açıklama"}'},
+          {role:'user', content:workoutDesc + ' için yakılan kaloriyi hesapla.'}
+        ]
+      })
+    });
+    const data = await resp.json();
+    const parsed = JSON.parse(data.choices[0].message.content.replace(/```json|```/g,'').trim());
+    
+    document.getElementById('qwAnalyzing').style.display = 'none';
+    document.getElementById('qwAiBox').style.display = 'block';
+    document.getElementById('qwAiResult').textContent = '🔥 ' + parsed.calories_burned + ' kcal · ' + parsed.intensity + ' yoğunluk';
+    document.getElementById('qwAiNote').textContent = parsed.note;
+    document.getElementById('qwCalories').value = parsed.calories_burned;
+  } catch(e) {
+    document.getElementById('qwAnalyzing').style.display = 'none';
+  }
+}
+
+async function saveQuickWorkout() {
+  const cal = +document.getElementById('qwCalories').value;
+  const dur = +document.getElementById('qwDuration').value;
+  if (!cal) { showToast('⚠️ Kalori giriniz!'); return; }
+  const emoji = qwSelectedType.split(' ')[0];
+  const name = qwSelectedType;
+  
+  await saveWorkoutRow({name, duration: dur, calories: cal, emoji});
+  closeWorkoutModal();
+  // Refresh today's data
+  await loadDay(todayStr());
+  showToast('🔥 Antrenman eklendi! ' + cal + ' kcal yakıldı.');
 }
 
 // ── SU TAKİBİ ──
