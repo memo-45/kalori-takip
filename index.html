@@ -1110,7 +1110,9 @@ function updateUI() {
   const protein=meals.reduce((s,m)=>s+(parseFloat(m.protein)||0),0);
   const carbs=meals.reduce((s,m)=>s+(parseFloat(m.carbs)||0),0);
   const fat=meals.reduce((s,m)=>s+(parseFloat(m.fat)||0),0);
-  const remaining=Math.max(0,goal-eaten),pct=Math.min(1,eaten/goal);
+  // Kalan ve halka net kaloriye göre hesaplanır
+  const remaining=Math.max(0,goal-net);
+  const pct=Math.min(1,net/goal);
   document.getElementById('consumedDisplay').textContent=eaten;
   document.getElementById('goalDisplay').textContent=goal;
   document.getElementById('proteinDisplay').textContent=Math.round(protein)+'g';
