@@ -238,6 +238,23 @@ input:focus,select:focus { outline:none; border-color:#0f3460; }
           <div class="net-cal-item"><div class="net-cal-label">Yakılan</div><div class="net-cal-value burned" id="burnedTotal">0</div></div>
           <div class="net-cal-item"><div class="net-cal-label">Net</div><div class="net-cal-value net" id="netTotal">0</div></div>
         </div>
+        <!-- SU TAKİBİ -->
+        <div id="waterBar" style="margin-top:10px;background:rgba(255,255,255,0.06);border-radius:10px;padding:10px 12px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+            <div style="font-size:10px;color:rgba(255,255,255,0.5);text-transform:uppercase;letter-spacing:0.5px;">💧 Su Takibi</div>
+            <div style="font-size:11px;color:white;"><span id="waterConsumed">0</span> / <span id="waterGoal">2500</span> ml</div>
+          </div>
+          <div style="height:6px;background:rgba(255,255,255,0.1);border-radius:3px;overflow:hidden;margin-bottom:8px;">
+            <div id="waterProgressBar" style="height:100%;background:linear-gradient(90deg,#53aff7,#9fe1cb);border-radius:3px;width:0%;transition:width 0.5s ease;"></div>
+          </div>
+          <div style="display:flex;gap:6px;flex-wrap:wrap;">
+            <button onclick="addWater(200)" style="background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);border-radius:8px;padding:5px 10px;font-size:11px;color:white;cursor:pointer;">+200ml</button>
+            <button onclick="addWater(300)" style="background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);border-radius:8px;padding:5px 10px;font-size:11px;color:white;cursor:pointer;">+300ml</button>
+            <button onclick="addWater(500)" style="background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);border-radius:8px;padding:5px 10px;font-size:11px;color:white;cursor:pointer;">+500ml</button>
+            <button onclick="addWaterCustom()" style="background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);border-radius:8px;padding:5px 10px;font-size:11px;color:white;cursor:pointer;">✏️ Özel</button>
+            <button onclick="resetWater()" style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:5px 8px;font-size:11px;color:rgba(255,255,255,0.5);cursor:pointer;margin-left:auto;">↺</button>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -495,6 +512,32 @@ input:focus,select:focus { outline:none; border-color:#0f3460; }
   </div>
 </div>
 
+<!-- EDIT FOOD MODAL -->
+<div id="editFoodModal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:1000;overflow-y:auto;">
+  <div style="background:white;margin:40px auto;max-width:420px;border-radius:20px;padding:24px;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+      <div style="font-family:'Syne',sans-serif;font-size:16px;font-weight:700;">Besini Düzenle</div>
+      <button onclick="closeEditModal()" style="background:none;border:none;font-size:20px;cursor:pointer;color:#888;">✕</button>
+    </div>
+    <input type="hidden" id="editFoodId">
+    <div class="form-group"><label class="form-label">Besin adı</label><input type="text" id="editFoodName"></div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Kalori/100g</label><input type="number" id="editCalPer100"></div>
+      <div class="form-group"><label class="form-label">Protein/100g</label><input type="number" id="editProteinPer100"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Karb/100g</label><input type="number" id="editCarbPer100"></div>
+      <div class="form-group"><label class="form-label">Yağ/100g</label><input type="number" id="editFatPer100"></div>
+    </div>
+    <div class="form-row-3">
+      <div class="form-group"><label class="form-label">Şeker/100g</label><input type="number" id="editSugarPer100"></div>
+      <div class="form-group"><label class="form-label">Lif/100g</label><input type="number" id="editFiberPer100"></div>
+      <div class="form-group"><label class="form-label">Sodyum mg</label><input type="number" id="editSodiumPer100"></div>
+    </div>
+    <button class="btn-primary" onclick="saveEditFood()">💾 Kaydet</button>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script>
@@ -577,6 +620,7 @@ function setSession(data) {
   loadProfile();
   loadDay(todayStr());
   loadFoods();
+  loadWater(todayStr());
 }
 
 function showAuthError(id, msg) { const el=document.getElementById(id); el.textContent=msg; el.style.display='block'; }
@@ -887,7 +931,7 @@ async function addFromDb() {
 function renderFoodDb() {
   const list=document.getElementById('foodDbList');
   if(!state.foods.length){list.innerHTML='<div class="empty-state"><i class="ti ti-salad"></i>Henüz besin eklemediniz.</div>';return;}
-  list.innerHTML=state.foods.map(f=>`<div class="food-db-item"><div><div class="food-db-name">${f.name}</div><div class="food-db-info">${f.calories_per_100g} kal · ${f.protein_per_100g}g P · ${f.carbs_per_100g}g K · ${f.fat_per_100g}g Y${f.sugar_g?` · ${f.sugar_g}g Şeker`:''}${f.fiber_g?` · ${f.fiber_g}g Lif`:''}${f.sodium_mg?` · ${f.sodium_mg}mg Sod`:''}  <small>(100g)</small></div></div><button class="meal-del" onclick="deleteFoodFromDb(${f.id})"><i class="ti ti-trash"></i></button></div>`).join('');
+  list.innerHTML=state.foods.map(f=>`<div class="food-db-item"><div style="flex:1;min-width:0;"><div class="food-db-name">${f.name}</div><div class="food-db-info">${f.calories_per_100g} kal · ${f.protein_per_100g}g P · ${f.carbs_per_100g}g K · ${f.fat_per_100g}g Y${f.sugar_g?` · ${f.sugar_g}g Ş`:''}${f.fiber_g?` · ${f.fiber_g}g L`:''}${f.sodium_mg?` · ${f.sodium_mg}mg Na`:''}  <small>(100g)</small></div></div><div style="display:flex;gap:4px;"><button class="meal-del" onclick="openEditFood(${f.id})" style="color:#378add;"><i class="ti ti-pencil"></i></button><button class="meal-del" onclick="deleteFoodFromDb(${f.id})"><i class="ti ti-trash"></i></button></div></div>`).join('');
 }
 
 function updateUI() {
@@ -1121,6 +1165,95 @@ async function calculateCalories() {
   document.getElementById('calcResult').style.display='block';
   state.goal=tdee;document.getElementById('goalDisplay').textContent=tdee;updateUI();
   await saveProfile({goal_calories:tdee,age,gender,height_cm:h,weight_kg:w,activity:act,goal_mult:gm});
+}
+
+// ── SU TAKİBİ ──
+async function loadWater(date) {
+  try {
+    const rows = await sb(`/rest/v1/water_log?user_id=eq.${currentUser.user.id}&date=eq.${date}&order=created_at.asc`);
+    const total = rows.reduce((s,r) => s + (r.amount_ml||0), 0);
+    const weight = +document.getElementById('weight').value || 70;
+    const goal = Math.round(weight * 35); // 35ml per kg
+    document.getElementById('waterConsumed').textContent = total;
+    document.getElementById('waterGoal').textContent = goal;
+    const pct = Math.min(100, Math.round(total/goal*100));
+    document.getElementById('waterProgressBar').style.width = pct + '%';
+  } catch(e) {}
+}
+
+async function addWater(ml) {
+  try {
+    await sb('/rest/v1/water_log', 'POST', {
+      user_id: currentUser.user.id,
+      date: todayStr(),
+      amount_ml: ml
+    });
+    const cur = +document.getElementById('waterConsumed').textContent + ml;
+    const goal = +document.getElementById('waterGoal').textContent;
+    document.getElementById('waterConsumed').textContent = cur;
+    const pct = Math.min(100, Math.round(cur/goal*100));
+    document.getElementById('waterProgressBar').style.width = pct + '%';
+    showToast('💧 +' + ml + 'ml eklendi!');
+    if (cur >= goal) showToast('🎉 Günlük su hedefine ulaştın!');
+  } catch(e) { showToast('❌ Hata'); }
+}
+
+async function addWaterCustom() {
+  const ml = parseInt(prompt('Kaç ml su içtin?'));
+  if (ml && ml > 0) await addWater(ml);
+}
+
+async function resetWater() {
+  if (!confirm('Bugünkü su kaydını sıfırla?')) return;
+  try {
+    await sb(`/rest/v1/water_log?user_id=eq.${currentUser.user.id}&date=eq.${todayStr()}`, 'DELETE');
+    document.getElementById('waterConsumed').textContent = '0';
+    document.getElementById('waterProgressBar').style.width = '0%';
+    showToast('💧 Su kaydı sıfırlandı');
+  } catch(e) {}
+}
+
+// ── BESİN DÜZENLE ──
+function openEditFood(id) {
+  const f = state.foods.find(f => f.id === id);
+  if (!f) return;
+  document.getElementById('editFoodId').value = id;
+  document.getElementById('editFoodName').value = f.name || '';
+  document.getElementById('editCalPer100').value = f.calories_per_100g || '';
+  document.getElementById('editProteinPer100').value = f.protein_per_100g || '';
+  document.getElementById('editCarbPer100').value = f.carbs_per_100g || '';
+  document.getElementById('editFatPer100').value = f.fat_per_100g || '';
+  document.getElementById('editSugarPer100').value = f.sugar_g || '';
+  document.getElementById('editFiberPer100').value = f.fiber_g || '';
+  document.getElementById('editSodiumPer100').value = f.sodium_mg || '';
+  document.getElementById('editFoodModal').style.display = 'block';
+}
+
+function closeEditModal() {
+  document.getElementById('editFoodModal').style.display = 'none';
+}
+
+async function saveEditFood() {
+  const id = document.getElementById('editFoodId').value;
+  const data = {
+    name: document.getElementById('editFoodName').value.trim(),
+    calories_per_100g: +document.getElementById('editCalPer100').value || 0,
+    protein_per_100g: +document.getElementById('editProteinPer100').value || 0,
+    carbs_per_100g: +document.getElementById('editCarbPer100').value || 0,
+    fat_per_100g: +document.getElementById('editFatPer100').value || 0,
+    sugar_g: +document.getElementById('editSugarPer100').value || 0,
+    fiber_g: +document.getElementById('editFiberPer100').value || 0,
+    sodium_mg: +document.getElementById('editSodiumPer100').value || 0
+  };
+  if (!data.name) { showToast('⚠️ İsim zorunlu!'); return; }
+  try {
+    await sb(`/rest/v1/foods?id=eq.${id}`, 'PATCH', data);
+    const idx = state.foods.findIndex(f => f.id == id);
+    if (idx >= 0) state.foods[idx] = {...state.foods[idx], ...data};
+    renderFoodDb();
+    closeEditModal();
+    showToast('✅ Besin güncellendi!');
+  } catch(e) { showToast('❌ Güncelleme hatası'); }
 }
 
 // Service Worker
