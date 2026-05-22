@@ -232,9 +232,9 @@ input:focus,select:focus { outline:none; border-color:#0f3460; }
       </div>
       <div style="flex:1;">
         <div class="macro-stats">
-          <div class="macro-item"><div class="macro-item-label">Protein</div><div class="macro-item-value" id="proteinDisplay">0g</div><div class="macro-item-bar"><div class="macro-item-fill" id="proteinBar" style="width:0%;background:#53aff7;"></div></div></div>
-          <div class="macro-item"><div class="macro-item-label">Karb</div><div class="macro-item-value" id="carbDisplay">0g</div><div class="macro-item-bar"><div class="macro-item-fill" id="carbBar" style="width:0%;background:#fac775;"></div></div></div>
-          <div class="macro-item"><div class="macro-item-label">Yağ</div><div class="macro-item-value" id="fatDisplay">0g</div><div class="macro-item-bar"><div class="macro-item-fill" id="fatBar" style="width:0%;background:#f09595;"></div></div></div>
+          <div class="macro-item"><div class="macro-item-label">Protein</div><div style="display:flex;align-items:baseline;gap:3px;"><div class="macro-item-value" id="proteinDisplay">0</div><div style="font-size:9px;color:rgba(255,255,255,0.4);">/<span id="proteinGoal">150</span>g</div></div><div class="macro-item-bar"><div class="macro-item-fill" id="proteinBar" style="width:0%;background:#53aff7;"></div></div></div>
+          <div class="macro-item"><div class="macro-item-label">Karb</div><div style="display:flex;align-items:baseline;gap:3px;"><div class="macro-item-value" id="carbDisplay">0</div><div style="font-size:9px;color:rgba(255,255,255,0.4);">/<span id="carbGoal">200</span>g</div></div><div class="macro-item-bar"><div class="macro-item-fill" id="carbBar" style="width:0%;background:#fac775;"></div></div></div>
+          <div class="macro-item"><div class="macro-item-label">Yağ</div><div style="display:flex;align-items:baseline;gap:3px;"><div class="macro-item-value" id="fatDisplay">0</div><div style="font-size:9px;color:rgba(255,255,255,0.4);">/<span id="fatGoal">60</span>g</div></div><div class="macro-item-bar"><div class="macro-item-fill" id="fatBar" style="width:0%;background:#f09595;"></div></div></div>
           <div class="macro-item"><div class="macro-item-label">Kalan</div><div class="macro-item-value" id="remainingDisplay">2000</div><div class="macro-item-bar"><div class="macro-item-fill" id="remainingBar" style="width:100%;background:#9fe1cb;"></div></div></div>
         </div>
         <div class="net-cal-bar">
@@ -242,6 +242,19 @@ input:focus,select:focus { outline:none; border-color:#0f3460; }
           <div class="net-cal-item"><div class="net-cal-label">Yakılan</div><div class="net-cal-value burned" id="burnedTotal">0</div></div>
           <div class="net-cal-item"><div class="net-cal-label">Net</div><div class="net-cal-value net" id="netTotal">0</div></div>
         </div>
+        <!-- ANTRENMAN GÜNÜ TOGGLE -->
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-top:10px;background:rgba(255,255,255,0.06);border-radius:10px;padding:10px 12px;">
+          <div>
+            <div style="font-size:11px;color:white;font-weight:500;">💪 Antrenman Günü</div>
+            <div id="trainingDayInfo" style="font-size:10px;color:rgba(255,255,255,0.4);margin-top:1px;">Protein ve karb hedefleri artar</div>
+          </div>
+          <label style="position:relative;display:inline-block;width:44px;height:24px;cursor:pointer;">
+            <input type="checkbox" id="trainingDayToggle" onchange="toggleTrainingDay(this.checked)" style="opacity:0;width:0;height:0;">
+            <span style="position:absolute;top:0;left:0;right:0;bottom:0;background:#555;border-radius:24px;transition:0.3s;" id="toggleSlider"></span>
+            <span style="position:absolute;height:18px;width:18px;left:3px;bottom:3px;background:white;border-radius:50%;transition:0.3s;" id="toggleThumb"></span>
+          </label>
+        </div>
+
         <!-- HIZLI ANTRENMAN BUTONU -->
         <button onclick="openWorkoutModal()" style="width:100%;margin-top:10px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);border-radius:10px;padding:10px 14px;color:white;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:12px;display:flex;align-items:center;justify-content:space-between;">
           <span>🏋️ Antrenman ekle</span>
@@ -811,7 +824,8 @@ async function loadProfile() {
     const rows=await sb(`/rest/v1/profile?user_id=eq.${currentUser.user.id}`);
     if(rows[0]){
       const p=rows[0]; state.goal=p.goal_calories||2000;
-      if(p.age) document.getElementById('age').value=p.age;
+      updateMacroGoals();
+    if(p.age) document.getElementById('age').value=p.age;
       if(p.gender) document.getElementById('gender').value=p.gender;
       if(p.height_cm) document.getElementById('height').value=p.height_cm;
       if(p.weight_kg) document.getElementById('weight').value=p.weight_kg;
@@ -835,7 +849,9 @@ async function saveWorkoutRow(w) {
   setSyncState('syncing','Kaydediliyor...');
   try {
     const row=await sb('/rest/v1/workouts','POST',{user_id:currentUser.user.id,date:todayStr(),name:w.name,duration_min:w.duration,calories_burned:w.calories,emoji:w.emoji});
-    if(state.viewDate===todayStr()) state.workouts.push(row[0]);
+    // Her zaman bugünün state'ine ekle
+    state.workouts.push(row[0]);
+    state.viewDate = todayStr();
     setSyncState('ok','Kaydedildi ✓'); showToast('🔥 '+w.name+' eklendi!');
   } catch(e){ setSyncState('error','Hata'); showToast('❌ Kayıt hatası!'); }
   updateUI();
@@ -1088,8 +1104,8 @@ function renderFoodDb() {
 
 function updateUI() {
   const meals=state.meals,workouts=state.workouts;
-  const eaten=meals.reduce((s,m)=>s+(m.calories||0),0);
-  const burned=workouts.reduce((s,w)=>s+(w.calories_burned||0),0);
+  const eaten=meals.reduce((s,m)=>s+(parseInt(m.calories)||0),0);
+  const burned=workouts.reduce((s,w)=>s+(parseInt(w.calories_burned)||0),0);
   const net=eaten-burned,goal=state.goal;
   const protein=meals.reduce((s,m)=>s+(parseFloat(m.protein)||0),0);
   const carbs=meals.reduce((s,m)=>s+(parseFloat(m.carbs)||0),0);
@@ -1315,8 +1331,58 @@ async function calculateCalories() {
   document.getElementById('brkCarb').textContent=cb;
   document.getElementById('brkFat').textContent=fa;
   document.getElementById('calcResult').style.display='block';
-  state.goal=tdee;document.getElementById('goalDisplay').textContent=tdee;updateUI();
+  state.goal=tdee;document.getElementById('goalDisplay').textContent=tdee;updateMacroGoals();updateUI();
   await saveProfile({goal_calories:tdee,age,gender,height_cm:h,weight_kg:w,activity:act,goal_mult:gm});
+}
+
+// ── ANTRENMAN GÜNÜ & MAKRO HEDEFLER ──
+let isTrainingDay = false;
+
+function toggleTrainingDay(checked) {
+  isTrainingDay = checked;
+  const slider = document.getElementById('toggleSlider');
+  const thumb = document.getElementById('toggleThumb');
+  const info = document.getElementById('trainingDayInfo');
+  if (checked) {
+    slider.style.background = '#53aff7';
+    thumb.style.left = '23px';
+    info.textContent = '🔥 Protein +20%, Karb +15% artırıldı!';
+  } else {
+    slider.style.background = '#555';
+    thumb.style.left = '3px';
+    info.textContent = 'Protein ve karb hedefleri artar';
+  }
+  updateMacroGoals();
+  updateUI();
+}
+
+function updateMacroGoals() {
+  const weight = parseFloat(document.getElementById('weight').value) || 70;
+  const goal = state.goal;
+  
+  let proteinGoal, carbGoal, fatGoal;
+  
+  if (isTrainingDay) {
+    // Antrenman günü: daha fazla protein ve karb
+    proteinGoal = Math.round(weight * 2.2);   // 2.2g/kg
+    fatGoal = Math.round(goal * 0.25 / 9);
+    carbGoal = Math.round((goal - proteinGoal * 4 - fatGoal * 9) / 4);
+    // Karb minimum %40 olsun antrenman günü
+    carbGoal = Math.max(carbGoal, Math.round(goal * 0.40 / 4));
+  } else {
+    // Normal gün
+    proteinGoal = Math.round(weight * 1.8);   // 1.8g/kg
+    fatGoal = Math.round(goal * 0.25 / 9);
+    carbGoal = Math.round((goal - proteinGoal * 4 - fatGoal * 9) / 4);
+  }
+  
+  state.macroGoals = { protein: proteinGoal, carb: carbGoal, fat: fatGoal };
+  
+  document.getElementById('proteinGoal').textContent = proteinGoal;
+  document.getElementById('carbGoal').textContent = carbGoal;
+  document.getElementById('fatGoal').textContent = fatGoal;
+  
+  return { proteinGoal, carbGoal, fatGoal };
 }
 
 // ── AI KOÇ ──
