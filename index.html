@@ -1331,10 +1331,17 @@ function selectGoalCoach(btn, goal) {
   btn.classList.add('selected');
 }
 
+let coachMuscles = [];
+
 function selectMuscleCoach(btn, muscle) {
-  coachMuscle = muscle;
-  document.querySelectorAll('.coach-muscle-btn').forEach(b => b.classList.remove('selected'));
-  btn.classList.add('selected');
+  if (coachMuscles.includes(muscle)) {
+    coachMuscles = coachMuscles.filter(m => m !== muscle);
+    btn.classList.remove('selected');
+  } else {
+    coachMuscles.push(muscle);
+    btn.classList.add('selected');
+  }
+  coachMuscle = coachMuscles.join(' + ');
 }
 
 function selectLevelCoach(btn, level) {
